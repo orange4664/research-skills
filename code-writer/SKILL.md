@@ -169,3 +169,73 @@ Why bottom-up? Build small, test small, then compose.
 pip install -r code-writer/requirements.txt
 # Requires: jinja2, pyyaml
 ```
+
+## Examples
+
+See `code-writer/examples/` for runnable demos:
+
+| Example | What it Shows |
+|---------|---------------|
+| `01_generate_from_description.py` | Full project generation from paper-like data |
+| `02_extractors_demo.py` | Each extractor running independently |
+
+### Quick Example: Architecture Detection
+```python
+from extractors.architecture import extract_architecture
+
+sections = [{'title': 'Method', 'content': 'We use a U-Net with self-attention...'}]
+arch = extract_architecture(sections)
+# → {'components': ['attention', 'unet'], 'architecture_type': 'attention'}
+```
+
+### Quick Example: Hyperparameter Extraction
+```python
+from extractors.experiment import extract_experiment
+
+sections = [{'title': 'Experiments', 'content': 'Adam optimizer lr 1e-4, batch 64, 200 epochs on CIFAR-10'}]
+exp = extract_experiment(sections)
+# → {'hyperparameters': {'learning_rate': '1e-4', 'batch_size': '64', ...}, 'datasets': ['CIFAR-10']}
+```
+
+### Quick Example: Reference Code Discovery
+```python
+from extractors.reference_finder import find_reference_code
+
+paper_info = {'title': 'My DDPM Paper', 'abstract': 'diffusion model using U-Net...', ...}
+refs = find_reference_code(paper_info)
+# → {'base_methods': ['U-Net', 'DDPM'], 'search_queries': [...], 'strategy': '...'}
+```
+
+## 📚 Reference URLs (for agent self-help)
+
+When stuck, the agent should fetch these URLs for guidance:
+
+| Topic | URL |
+|-------|-----|
+| **Jinja2 template syntax** | `https://jinja.palletsprojects.com/en/3.1.x/templates/` |
+| **PyYAML documentation** | `https://pyyaml.org/wiki/PyYAMLDocumentation` |
+| **PyTorch model best practices** | `https://pytorch.org/tutorials/beginner/introyt/modelsyt_tutorial.html` |
+| **PyTorch training loop** | `https://pytorch.org/tutorials/beginner/introyt/trainingyt.html` |
+| **PyTorch data loading** | `https://pytorch.org/tutorials/beginner/basics/data_tutorial.html` |
+| **Papers With Code methods** | `https://paperswithcode.com/methods` |
+| **torchvision datasets** | `https://pytorch.org/vision/stable/datasets.html` |
+| **Hugging Face datasets** | `https://huggingface.co/docs/datasets/` |
+| **Common training recipes** | `https://github.com/pytorch/examples` |
+
+### Template Customization Help
+When modifying Jinja2 templates:
+```
+# Fetch Jinja2 template syntax docs:
+fetch_url("https://jinja.palletsprojects.com/en/3.1.x/templates/")
+```
+
+### Dataset Implementation Help
+When implementing data loading:
+```
+# Fetch PyTorch data loading tutorial:
+fetch_url("https://pytorch.org/tutorials/beginner/basics/data_tutorial.html")
+
+# Fetch torchvision available datasets:
+fetch_url("https://pytorch.org/vision/stable/datasets.html")
+```
+

@@ -135,3 +135,48 @@ The JSON report contains:
   - `code-reproducer` → reads reproduction plan, training commands
   - `paper-presenter` → reads AST analysis for code-theory alignment
   - `result-analyzer` → reads expected metrics for comparison
+
+## 📚 Reference URLs (for agent self-help)
+
+When encountering issues with code analysis, fetch these URLs:
+
+| Topic | URL |
+|-------|-----|
+| **Python `ast` module docs** | `https://docs.python.org/3/library/ast.html` |
+| **PyCG call graph analysis** | `https://github.com/vitsalis/PyCG` |
+| **PyCG paper (ICSE'21)** | `https://arxiv.org/abs/2103.00587` |
+| **code2flow flowcharts** | `https://github.com/scottrogowski/code2flow` |
+| **ML Code Completeness Checklist** | `https://medium.com/paperswithcode/ml-code-completeness-checklist-e9127b168501` |
+| **Papers With Code trends** | `https://paperswithcode.com/trends` |
+| **PyTorch model inspection** | `https://pytorch.org/docs/stable/generated/torch.nn.Module.html` |
+| **HuggingFace Trainer API** | `https://huggingface.co/docs/transformers/main_classes/trainer` |
+
+### Troubleshooting AST Analysis
+**Problem**: AST parsing fails on a Python file.
+**Likely cause**: Non-standard Python syntax, encoding issues, or Python 2 code.
+```
+# Fetch Python ast docs:
+fetch_url("https://docs.python.org/3/library/ast.html")
+```
+
+### Troubleshooting code2flow
+**Problem**: `code2flow` not generating flowcharts.
+**Solution**: Ensure `graphviz` is installed system-wide.
+```bash
+# Windows
+choco install graphviz
+# Ubuntu
+apt-get install graphviz
+```
+```
+# Fetch code2flow docs:
+fetch_url("https://github.com/scottrogowski/code2flow")
+```
+
+### Understanding Reproducibility Scores
+**Problem**: Need to understand why a repo scored low.
+```
+# Fetch the ML Code Completeness methodology:
+fetch_url("https://medium.com/paperswithcode/ml-code-completeness-checklist-e9127b168501")
+```
+
