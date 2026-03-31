@@ -1,131 +1,207 @@
 ---
 name: code-reproducer
-description: Automated code reproduction on remote GPU servers via SSH — upload, setup, train, monitor, download.
+description: Analyze source code repos and automate paper reproduction on remote GPU servers via mcp-ssh.
 ---
 
 # Code Reproducer Skill
 
 ## Purpose
-Automate the full reproduction pipeline on remote GPU servers: SSH connect → upload code → setup environment → run training → periodic monitoring → download results. This is the fifth step in the research reproduction pipeline.
+Automate the full reproduction of a research paper's experiments on remote GPU servers. This skill handles the **intelligence layer** (analyzing code, generating setup commands, monitoring training) while delegating SSH operations to **mcp-ssh** (MCP protocol SSH tool).
+
+## Architecture
+```
+code-reproducer (this skill)         mcp-ssh (MCP tool)
+  └── analyze_repo.py                 └── SSH connection
+      ├── Framework detection              ├── Command execution
+      ├── Training script detection        ├── File upload/download
+      ├── Config extraction                ├── tmux session management
+      └── Reproduction plan                └── Persistent sessions
+```
+
+## Prerequisites
+- **mcp-ssh** must be installed and configured in the MCP client
+  - Install: `git clone https://github.com/shuakami/mcp-ssh.git && cd mcp-ssh && npm install && npm run build`
+  - Config: Add to your MCP config (Cursor/Claude Desktop `mcp.json`)
+  - Docs: https://github.com/shuakami/mcp-ssh
 
 ## When to Use
-- After downloading source code with paper-downloader
-- User asks to "reproduce", "train", "run on GPU", or "replicate experiments"
-- User wants to execute code on a remote server
+- After paper-downloader has cloned source code
+- User asks to "reproduce", "train", "run experiments", or "replicate results"
+- User wants to execute code on a remote GPU server
 
-## First-Time Setup (MANDATORY — ask user these questions)
+## Workflow
 
-Before running, you MUST collect server information from the user. Ask these questions:
+### Phase 1: Analyze Repository (LOCAL)
 
-### Required Questions:
-1. **SSH Host**: "What is your GPU server's IP address or hostname?"
-2. **SSH Port**: "What port does SSH use? (default: 22)"
-3. **SSH Username**: "What is your SSH login username?"
-4. **Authentication**: "Do you use SSH key or password authentication?"
-   - If key: "Where is your SSH key file? (default: ~/.ssh/id_rsa)"
-   - If password: "Please provide your SSH password"
-5. **Jump Host**: "Does your server require a bastion/jump host? If so, what's the address?"
-
-### Environment Questions:
-6. **Environment Manager**: "How do you manage Python environments on the server?"
-   - conda (most common for ML)
-   - venv
-   - docker
-   - none (system Python)
-7. **CUDA Version**: "What CUDA version is installed? (leave blank for auto-detect)"
-8. **Remote Workspace**: "Where should I put code on the server? (default: ~/reproduce)"
-
-### Running the Setup:
+Run `analyze_repo.py` to understand the codebase:
 ```bash
-python skills/code-reproducer/reproduce.py --setup --config workspace/<paper>/server_config.json
+python skills/code-reproducer/analyze_repo.py workspace/<paper>/code/<repo>/ -o workspace/<paper>/repo_analysis.json
 ```
 
-Or create the config programmatically from user answers:
-```python
-config = {
-    "host": "user_answer_host",
-    "port": 22,
-    "user": "user_answer_username",
-    "key_file": "~/.ssh/id_rsa",  # or "password": "xxx"
-    "env_manager": "conda",       # conda | venv | docker | none
-    "conda_path": "conda",
-    "remote_workspace": "~/reproduce"
-}
-# Save to server_config.json
-```
+This produces a JSON report containing:
+- **Framework**: PyTorch, TensorFlow, JAX, etc.
+- **Training scripts**: Ranked by confidence
+- **Configs**: Hyperparameters extracted
+- **Dependencies**: packages, CUDA requirements
+- **README instructions**: Install/train/eval commands parsed
+- **Reproduction plan**: Step-by-step commands
 
-## How to Use
+### Phase 2: Setup Server (via mcp-ssh)
 
-### Step 1: Setup Configuration
-Either run `--setup` interactively or create `server_config.json` from user answers.
+**First-time setup — ask the user these questions:**
+1. "What is your GPU server's SSH address and port?"
+2. "What is your username?"
+3. "Do you use SSH key or password authentication?"
+4. "Does your server need a jump/bastion host?"
 
-### Step 2: Run Reproduction
+**Then use mcp-ssh to:**
+1. Create SSH connection: ask mcp-ssh to connect to the server
+2. Test connection: run `echo "Connected"` and `nvidia-smi`
+3. Create a tmux session for persistence: `tmux new-session -d -s repro`
+
+### Phase 3: Upload Code (via mcp-ssh)
+
+1. Create remote workspace: `mkdir -p ~/reproduce/<project>`
+2. Upload code via mcp-ssh file upload tool
+3. Verify: `ls -la ~/reproduce/<project>/`
+
+### Phase 4: Setup Environment (via mcp-ssh)
+
+Based on `repo_analysis.json`, execute the appropriate commands IN the tmux session:
+
+**For conda + requirements.txt:**
 ```bash
-python skills/code-reproducer/reproduce.py workspace/<paper>/code/<repo>/ \
-    --config workspace/<paper>/server_config.json \
-    --output-dir workspace/<paper>/results/
+tmux send-keys -t repro "conda create -n repro_<project> python=3.10 -y" Enter
+# Wait for completion, then:
+tmux send-keys -t repro "conda activate repro_<project>" Enter
+tmux send-keys -t repro "cd ~/reproduce/<project> && pip install -r requirements.txt" Enter
 ```
 
-**Options:**
-- `--run-script train.py` — Specify the training script (auto-detected if not set)
-- `--run-args "--epochs 100 --batch-size 32"` — Extra training arguments
-- `--monitor-interval 60` — Check training every N seconds (default: 60)
-- `--timeout 24` — Kill training after N hours (default: 24)
-- `--no-download` — Skip downloading results
-- `--remote-dir /path/on/server` — Override remote directory
+**For environment.yml:**
+```bash
+tmux send-keys -t repro "conda env create -f ~/reproduce/<project>/environment.yml -n repro_<project>" Enter
+```
 
-### Step 3: Monitor Training
-The skill automatically:
-1. Starts training in background (nohup)
-2. Checks the log file every `--monitor-interval` seconds
-3. Reports latest output at each check
-4. Detects when training completes or fails
-5. Can kill the process if timeout is exceeded
+**For Docker:**
+```bash
+tmux send-keys -t repro "cd ~/reproduce/<project> && docker build -t repro ." Enter
+```
 
-**For long training runs**, the agent should:
-- Start the training command
-- Sleep for a reasonable interval (e.g., 30-60 minutes for typical ML training)
-- Wake up and check the training log
-- Repeat until done or timeout
+**After setup, verify:**
+```bash
+# For PyTorch
+python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}, GPUs: {torch.cuda.device_count()}')"
 
-### Step 4: Download Results
-After training, the skill downloads:
-- `output/`, `results/`, `checkpoints/`, `logs/`, `figures/` directories
-- Any `.log`, `.csv`, `.json`, `.png`, `.jpg`, `.pdf` files
-- Model checkpoints (`.pt`, `.pth`, `.ckpt`)
-- Full training log
+# For TensorFlow
+python -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+```
 
-### Step 5: Report to User
+### Phase 5: Run Training (via mcp-ssh + tmux)
+
+> [!IMPORTANT]
+> **Always use tmux** for training. This ensures the training continues even if the SSH session drops.
+
+1. Start training in the tmux session:
+```bash
+tmux send-keys -t repro "cd ~/reproduce/<project>" Enter
+tmux send-keys -t repro "python <training_script> <args> 2>&1 | tee training.log" Enter
+```
+
+2. The training command comes from `repo_analysis.json`:
+   - First priority: README training commands
+   - Second: detected training scripts
+   - Third: ask the user
+
+### Phase 6: Monitor Training (periodic)
+
+> [!TIP]
+> **For long training runs**: After starting training, wait/sleep for a reasonable interval (e.g., 10-30 minutes for quick tests, 1-2 hours for full training), then check progress.
+
+**Check progress via mcp-ssh:**
+```bash
+# Get latest log lines
+tmux capture-pane -t repro -p | tail -20
+
+# Or check the log file
+tail -20 ~/reproduce/<project>/training.log
+
+# Check if process is still running
+ps aux | grep python | grep train
+
+# Check GPU usage
+nvidia-smi
+```
+
+**What to look for:**
+- Loss decreasing → training is working
+- OOM errors → reduce batch size
+- CUDA errors → check CUDA version compatibility
+- NaN loss → check learning rate, data preprocessing
+- Import errors → missing dependency, install it
+
+**Error recovery:** If training fails:
+1. Read the error message
+2. Diagnose and fix (install missing package, adjust hyperparameters)
+3. Restart in the same tmux session
+
+### Phase 7: Download Results (via mcp-ssh)
+
+After training completes:
+1. Check what was generated:
+```bash
+find ~/reproduce/<project> -name "*.pt" -o -name "*.pth" -o -name "*.ckpt" -o -name "*.png" -o -name "*.csv" -o -name "*.log" | head -30
+```
+
+2. Download result files via mcp-ssh to local:
+   - Model checkpoints
+   - Training logs
+   - Generated images/figures
+   - Evaluation metrics
+
+3. Save to `workspace/<paper>/results/`
+
+### Phase 8: Report to User
+
 Tell the user:
-- Training duration
-- Final accuracy/loss from logs
+- ✅ Training completed (or ❌ failed with reason)
+- Duration
+- Final metrics (loss, accuracy, FID, etc.)
 - Files downloaded
-- Any errors encountered
-- Where results are saved locally
+- Next steps (run result-analyzer for comparison with paper)
 
-## Auto-Detection
+## Helper Script
 
-The script auto-detects:
-- **Training script**: looks for `train.py`, `main.py`, `run.py` etc.
-- **GPU info**: runs `nvidia-smi` on the server
-- **CUDA version**: runs `nvcc --version`
-- **Dependencies**: installs from `requirements.txt`, `environment.yml`, or `setup.py`
+### analyze_repo.py
 
-## Error Handling
-- If SSH connection fails: check host/port/credentials, ask user to verify
-- If training script not found: ask user to specify with `--run-script`
-- If environment setup fails: show error logs, suggest manual setup
-- If training fails: show last 50 lines of training log
-- If timeout: kill process, download partial results
+Analyzes a source code repository to understand how to reproduce it.
+
+**Input**: Path to code directory
+**Output**: JSON report with:
+- `framework`: Detected ML framework and confidence scores
+- `training_scripts`: List of potential training scripts with confidence
+- `configs`: Configuration files and extracted hyperparameters
+- `dependencies`: Package list, CUDA requirements
+- `readme`: Parsed installation and training commands
+- `reproduction_plan`: Ordered steps with shell commands
+
+**Usage:**
+```bash
+python analyze_repo.py <code_dir> [-o output.json]
+```
 
 ## Dependencies
-- Python 3.10+
-- No Python packages required (uses system `ssh`/`scp`/`rsync` commands)
-- Requires: OpenSSH client installed on the local machine
-- Requires: SSH access to a remote GPU server
+- Python 3.10+ (for analyze_repo.py)
+- No Python packages required (stdlib only)
+- **mcp-ssh** for SSH operations (https://github.com/shuakami/mcp-ssh)
 
-## Pipeline Integration
-```
-paper-downloader output → code-reproducer → result-analyzer
-   (source code)           (train on GPU)    (compare results)
-```
+## Common Pitfalls and Solutions
+
+| Problem | Solution |
+|---------|----------|
+| CUDA version mismatch | Check `nvcc --version` and install matching PyTorch |
+| OOM (Out of Memory) | Reduce batch size, enable gradient checkpointing |
+| Missing data | Check README for dataset download instructions |
+| Deprecated API calls | Check the paper's publication year, install matching lib versions |
+| Training too slow | Verify GPU is being used: `nvidia-smi` during training |
+| tmux session lost | `tmux ls` to list sessions, `tmux attach -t repro` to reattach |
+| Permission denied | `chmod +x <script>` or check directory permissions |
