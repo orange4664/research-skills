@@ -14,6 +14,7 @@ Each skill is a self-contained tool that can be used:
 | [paper-downloader](./paper-downloader/) | Download paper PDFs and clone source code repos | ✅ Ready |
 | [paper-parser](./paper-parser/) | Parse PDF papers into structured JSON (via MinerU) | ✅ Ready |
 | [paper-presenter](./paper-presenter/) | Generate Beamer presentations summarizing papers | ✅ Ready |
+| [beamer-skill](./beamer-skill/) | Academic Beamer LaTeX presentation lifecycle tool | ✅ Ready (bundled) |
 | code-reproducer | SSH to GPU servers and reproduce training pipelines | 🔜 Coming |
 | result-analyzer | Compare reproduced results against original figures | 🔜 Coming |
 
@@ -37,10 +38,10 @@ python search_paper.py "Attention Is All You Need"
 │ (search)     │    │ (download)       │    │ (PDF → JSON) │
 └──────────────┘    └──────────────────┘    └──────┬───────┘
                                                    │
-                    ┌──────────────────┐    ┌───────▼───────┐
-                    │ result-analyzer  │◀───│paper-presenter│
-                    │ (compare)        │    │ (summarize)   │
-                    └──────────────────┘    └───────┬───────┘
+                    ┌──────────────────┐    ┌───────▼───────┐    ┌──────────────┐
+                    │ result-analyzer  │◀───│paper-presenter│───▶│ beamer-skill │
+                    │ (compare)        │    │ (summarize)   │    │ (LaTeX PPT)  │
+                    └──────────────────┘    └───────┬───────┘    └──────────────┘
                            ▲                       │
                     ┌──────┴───────────┐           │
                     │ code-reproducer  │◀──────────┘
@@ -51,3 +52,9 @@ python search_paper.py "Attention Is All You Need"
 ## 📄 License
 
 MIT License — see [LICENSE](LICENSE)
+
+## 🙏 Third-Party
+
+| Component | Author | License | Link |
+|-----------|--------|---------|------|
+| beamer-skill | [Noi1r](https://github.com/Noi1r) | MIT | [GitHub](https://github.com/Noi1r/beamer-skill) |

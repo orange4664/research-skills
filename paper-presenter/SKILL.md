@@ -67,7 +67,10 @@ When `--style reproduction-report` and `--code-dir` are used:
 ## Dependencies
 - Python 3.10+
 - No external libraries required (uses only stdlib + json)
-- Requires: beamer-skill installed for the actual presentation generation
+- Requires: beamer-skill for the actual presentation generation
+  - **Bundled at**: `../beamer-skill/beamer/` in this monorepo
+  - **Original**: https://github.com/Noi1r/beamer-skill (MIT License by Noi1r)
+  - To install: copy or symlink `beamer-skill/beamer/` to your project's `.gemini/skills/beamer/`
 
 ## Output Format
 The output is a structured Markdown file containing:
