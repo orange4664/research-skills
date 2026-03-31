@@ -1,0 +1,5 @@
+# Optional dependencies for enhanced features
+# Core analysis uses only Python stdlib (ast, re, json, pathlib)
+
+# Flowchart generation (optional)
+code2flow>=2.0.0

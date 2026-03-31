@@ -1,24 +1,25 @@
 ---
 name: code-reproducer
-description: Analyze source code repos and automate paper reproduction on remote GPU servers via mcp-ssh.
+description: Automate paper reproduction on remote GPU servers via mcp-ssh, using code-analyzer's reports.
 ---
 
 # Code Reproducer Skill
 
 ## Purpose
-Automate the full reproduction of a research paper's experiments on remote GPU servers. This skill handles the **intelligence layer** (analyzing code, generating setup commands, monitoring training) while delegating SSH operations to **mcp-ssh** (MCP protocol SSH tool).
+Automate the full reproduction of a research paper's experiments on remote GPU servers. This skill reads the analysis report from **code-analyzer** and executes the reproduction plan via **mcp-ssh**.
 
 ## Architecture
 ```
-code-reproducer (this skill)         mcp-ssh (MCP tool)
-  └── analyze_repo.py                 └── SSH connection
-      ├── Framework detection              ├── Command execution
-      ├── Training script detection        ├── File upload/download
-      ├── Config extraction                ├── tmux session management
-      └── Reproduction plan                └── Persistent sessions
+code-analyzer (analysis)  →  code-reproducer (this skill)  →  mcp-ssh (SSH)
+  └── code_analysis.json       └── Reads analysis report        └── SSH connection
+      ├── Framework                  ├── Environment setup          ├── Command execution
+      ├── Training scripts           ├── Training execution         ├── File upload/download
+      ├── Configs                    ├── Progress monitoring        ├── tmux sessions
+      └── Reproduction plan          └── Result downloading         └── Persistent sessions
 ```
 
 ## Prerequisites
+- **code-analyzer** must have been run first (produces `code_analysis.json`)
 - **mcp-ssh** must be installed and configured in the MCP client
   - Install: `git clone https://github.com/shuakami/mcp-ssh.git && cd mcp-ssh && npm install && npm run build`
   - Config: Add to your MCP config (Cursor/Claude Desktop `mcp.json`)
@@ -31,20 +32,14 @@ code-reproducer (this skill)         mcp-ssh (MCP tool)
 
 ## Workflow
 
-### Phase 1: Analyze Repository (LOCAL)
+### Phase 1: Analyze Repository (LOCAL) — via code-analyzer
 
-Run `analyze_repo.py` to understand the codebase:
+Run the **code-analyzer** skill first:
 ```bash
-python skills/code-reproducer/analyze_repo.py workspace/<paper>/code/<repo>/ -o workspace/<paper>/repo_analysis.json
+python code-analyzer/analyze.py workspace/<paper>/code/<repo>/ -o workspace/<paper>/code_analysis.json
 ```
 
-This produces a JSON report containing:
-- **Framework**: PyTorch, TensorFlow, JAX, etc.
-- **Training scripts**: Ranked by confidence
-- **Configs**: Hyperparameters extracted
-- **Dependencies**: packages, CUDA requirements
-- **README instructions**: Install/train/eval commands parsed
-- **Reproduction plan**: Step-by-step commands
+This produces a comprehensive JSON report containing framework detection, AST call graph, training loop analysis, reproducibility score, and a step-by-step reproduction plan. See `code-analyzer/SKILL.md` for full details.
 
 ### Phase 2: Setup Server (via mcp-ssh)
 
@@ -67,7 +62,7 @@ This produces a JSON report containing:
 
 ### Phase 4: Setup Environment (via mcp-ssh)
 
-Based on `repo_analysis.json`, execute the appropriate commands IN the tmux session:
+Based on `code_analysis.json`, execute the appropriate commands IN the tmux session:
 
 **For conda + requirements.txt:**
 ```bash
@@ -107,9 +102,9 @@ tmux send-keys -t repro "cd ~/reproduce/<project>" Enter
 tmux send-keys -t repro "python <training_script> <args> 2>&1 | tee training.log" Enter
 ```
 
-2. The training command comes from `repo_analysis.json`:
+2. The training command comes from `code_analysis.json` → `reproduction_plan`:
    - First priority: README training commands
-   - Second: detected training scripts
+   - Second: detected training scripts (with confidence scores)
    - Third: ask the user
 
 ### Phase 6: Monitor Training (periodic)
@@ -169,29 +164,8 @@ Tell the user:
 - Files downloaded
 - Next steps (run result-analyzer for comparison with paper)
 
-## Helper Script
-
-### analyze_repo.py
-
-Analyzes a source code repository to understand how to reproduce it.
-
-**Input**: Path to code directory
-**Output**: JSON report with:
-- `framework`: Detected ML framework and confidence scores
-- `training_scripts`: List of potential training scripts with confidence
-- `configs`: Configuration files and extracted hyperparameters
-- `dependencies`: Package list, CUDA requirements
-- `readme`: Parsed installation and training commands
-- `reproduction_plan`: Ordered steps with shell commands
-
-**Usage:**
-```bash
-python analyze_repo.py <code_dir> [-o output.json]
-```
-
 ## Dependencies
-- Python 3.10+ (for analyze_repo.py)
-- No Python packages required (stdlib only)
+- **code-analyzer** skill (for repository analysis)
 - **mcp-ssh** for SSH operations (https://github.com/shuakami/mcp-ssh)
 
 ## Common Pitfalls and Solutions
