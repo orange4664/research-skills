@@ -11,7 +11,7 @@ Each skill is a self-contained tool that can be used:
 | Skill | Description | Status |
 |-------|-------------|--------|
 | [paper-finder](./paper-finder/) | Search for papers & source code across arXiv, Semantic Scholar, HuggingFace, GitHub | ✅ Ready |
-| paper-downloader | Download paper PDFs and clone source code repos | 🔜 Coming |
+| [paper-downloader](./paper-downloader/) | Download paper PDFs and clone source code repos | ✅ Ready |
 | paper-parser | Parse PDF papers into structured JSON (via MinerU) | 🔜 Coming |
 | paper-presenter | Generate Beamer presentations summarizing papers | 🔜 Coming |
 | code-reproducer | SSH to GPU servers and reproduce training pipelines | 🔜 Coming |
