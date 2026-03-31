@@ -967,6 +967,40 @@ Use when the user wants to reuse figures from an existing paper (their own or a 
 - **Don't extract tables** — tables from PDF rasterize poorly. Always recreate tables in LaTeX using `booktabs`.
 - **Preamble dependency** — ensure `\usepackage{graphicx}` is in the preamble (add if missing). If using subfigures, also ensure `\usepackage{subcaption}`.
 
+### 2.12 `from-report [json_file]`
+
+**Generate a reproduction report Beamer presentation from `result-analyzer` output.**
+
+This action directly consumes `beamer_report_data.json` to auto-generate a complete Beamer .tex file.
+
+**Usage:**
+```bash
+# Generate .tex from result-analyzer JSON
+python beamer-skill/generate_beamer_report.py beamer_report_data.json -o reproduction_slides.tex
+
+# Generate and compile to PDF
+python beamer-skill/generate_beamer_report.py beamer_report_data.json -o slides.tex --compile
+```
+
+**Integration flow:**
+```
+result-analyzer (--beamer flag)
+    ↓ outputs beamer_report_data.json
+beamer-skill/generate_beamer_report.py
+    ↓ reads JSON, generates .tex
+reproduction_slides.tex → XeLaTeX → reproduction_slides.pdf
+```
+
+**Generated slides:**
+1. **Title slide** — paper name + overall Pass/Fail status
+2. **Metric comparison table** — color-coded (green=PASS, orange=WARN, red=FAIL)
+3. **Training curves** — embedded figure (if plot exists)
+4. **Sample comparison** — side-by-side figures (if generated)
+5. **Conclusion** — overall status + score
+6. **Thank You** — courtesy slide
+
+**Customization:** After generation, you can manually edit the .tex or use other beamer-skill actions (`review`, `audit`, `excellence`) to polish the auto-generated slides.
+
 ---
 
 ## 3. VERIFICATION PROTOCOL

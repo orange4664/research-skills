@@ -131,20 +131,29 @@ Slide-by-slide data for generating a Beamer PPT:
 # 1. Run result-analyzer with --beamer flag
 python result-analyzer/analyze.py ... --beamer -o report/
 
-# 2. Use beamer-skill to create PPT from the JSON
-beamer-skill: create presentation from report/beamer_report_data.json
+# 2. Auto-generate Beamer .tex from JSON
+python beamer-skill/generate_beamer_report.py report/beamer_report_data.json -o report/reproduction_slides.tex
+
+# 3. Compile to PDF
+python beamer-skill/generate_beamer_report.py report/beamer_report_data.json -o slides.tex --compile
 ```
 
-### → latex-paper-skills (Write LaTeX Paper)
+### → latex-paper-skills (Write LaTeX Paper via `latex_bridge.py`)
 ```bash
 # 1. Run result-analyzer
 python result-analyzer/analyze.py ... -o report/
 
-# 2. Copy JSON to paper/results/ for results-backfill
-cp report/reproduction_report.json paper/results/
+# 2. Convert JSON to latex-paper-skills format
+python result-analyzer/latex_bridge.py report/reproduction_report.json -o paper/results/
 
-# 3. Use latex-paper-skills results-backfill
-results-backfill: update paper with real results from paper/results/
+# This generates:
+#   paper/results/main_results.csv        ← CSV for results-backfill
+#   paper/results/main_results.tex        ← LaTeX table: \input{results/main_results.tex}
+#   paper/results/reproduction_summary.tex ← Summary text for abstract/conclusion
+
+# 3. In your paper:
+#   \input{results/main_results.tex}       % metric comparison table
+#   \input{results/reproduction_summary.tex} % auto-written reproduction summary
 ```
 
 ### ← paper-parser (Input)
