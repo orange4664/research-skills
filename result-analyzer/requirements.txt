@@ -1,0 +1,6 @@
+numpy
+matplotlib
+scikit-image
+pandas
+# Optional: FID score (GPU recommended)
+# pytorch-fid

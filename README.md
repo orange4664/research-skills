@@ -19,7 +19,7 @@ Each skill is a self-contained tool that can be used:
 | [paper-presenter](./paper-presenter/) | Generate Beamer presentations summarizing papers | ✅ Ready |
 | [beamer-skill](./beamer-skill/) | Academic Beamer LaTeX presentation lifecycle tool | ✅ Ready (bundled) |
 | [code-reproducer](./code-reproducer/) | Execute reproduction on remote GPU servers via mcp-ssh | ✅ Ready |
-| result-analyzer | Compare reproduced results against original figures | 🔜 Coming |
+| [result-analyzer](./result-analyzer/) | Compare reproduced results against paper figures/metrics. Reports in MD/JSON/Beamer | ✅ Ready |
 
 ## 🚀 Quick Start
 
@@ -77,3 +77,4 @@ MIT License — see [LICENSE](LICENSE)
 | sympytorch | [patrick-kidger](https://github.com/patrick-kidger) | Apache-2.0 | [GitHub](https://github.com/patrick-kidger/sympytorch) |
 | Reproducibility scoring | [Papers With Code](https://paperswithcode.com) | — | [ML Code Completeness](https://medium.com/paperswithcode/ml-code-completeness-checklist-e9127b168501) |
 | AST analysis approach | [PyCG](https://github.com/vitsalis/PyCG) (ICSE'21) | Apache-2.0 | [Paper](https://arxiv.org/abs/2103.00587) |
+| LaTeX paper writing | [latex-paper-skills](https://github.com/yunshenwuchuxun/latex-paper-skills) | MIT | [GitHub](https://github.com/yunshenwuchuxun/latex-paper-skills) |

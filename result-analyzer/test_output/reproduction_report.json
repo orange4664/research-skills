@@ -1,0 +1,87 @@
+{
+  "paper_title": "DDPM: Denoising Diffusion Probabilistic Models",
+  "generated_at": "2026-03-31T14:38:51.726210",
+  "generator": "result-analyzer",
+  "metrics": {
+    "comparisons": [
+      {
+        "metric": "accuracy",
+        "paper": 95.3,
+        "reproduced": 94.8,
+        "diff_abs": -0.5,
+        "diff_rel": 0.005246589716684156,
+        "diff_str": "-0.5 ↓",
+        "direction": "higher_better",
+        "status": "PASS",
+        "emoji": "✅",
+        "note": "Within tolerance"
+      },
+      {
+        "metric": "FID",
+        "paper": 3.17,
+        "reproduced": 3.45,
+        "diff_abs": 0.28000000000000025,
+        "diff_rel": 0.08832807570977926,
+        "diff_str": "+0.28 ↑",
+        "direction": "lower_better",
+        "status": "WARN",
+        "emoji": "⚠️",
+        "note": "Close but slightly off"
+      },
+      {
+        "metric": "PSNR",
+        "paper": 28.5,
+        "reproduced": 27.9,
+        "diff_abs": -0.6000000000000014,
+        "diff_rel": 0.02105263157894742,
+        "diff_str": "-0.6 ↓",
+        "direction": "higher_better",
+        "status": "PASS",
+        "emoji": "✅",
+        "note": "Within tolerance"
+      },
+      {
+        "metric": "SSIM",
+        "paper": 0.92,
+        "reproduced": 0.91,
+        "diff_abs": -0.010000000000000009,
+        "diff_rel": 0.010869565217391313,
+        "diff_str": "-0.01 ↓",
+        "direction": "higher_better",
+        "status": "PASS",
+        "emoji": "✅",
+        "note": "Within tolerance"
+      },
+      {
+        "metric": "loss",
+        "paper": 0.15,
+        "reproduced": 0.18,
+        "diff_abs": 0.03,
+        "diff_rel": 0.2,
+        "diff_str": "+0.03 ↑",
+        "direction": "lower_better",
+        "status": "FAIL",
+        "emoji": "❌",
+        "note": "Above paper by 20.0%"
+      }
+    ],
+    "summary": {
+      "total": 5,
+      "passed": 3,
+      "warned": 1,
+      "failed": 1,
+      "overall_status": "FAIL",
+      "overall_emoji": "🔴"
+    }
+  },
+  "curves": null,
+  "images": null,
+  "summary": {
+    "total": 5,
+    "passed": 3,
+    "warned": 1,
+    "failed": 1,
+    "overall_status": "FAIL",
+    "overall_emoji": "🔴"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "slides": [
+    {
+      "type": "title",
+      "title": "Reproduction Report: DDPM: Denoising Diffusion Probabilistic Models",
+      "subtitle": "Overall: 🔴 FAIL"
+    },
+    {
+      "type": "table",
+      "title": "Metric Comparison",
+      "headers": [
+        "Metric",
+        "Paper",
+        "Reproduced",
+        "Diff",
+        "Status"
+      ],
+      "rows": [
+        {
+          "metric": "accuracy",
+          "paper": "95.3",
+          "reproduced": "94.8",
+          "diff": "-0.5 ↓",
+          "status": "✅ PASS"
+        },
+        {
+          "metric": "FID",
+          "paper": "3.17",
+          "reproduced": "3.45",
+          "diff": "+0.28 ↑",
+          "status": "⚠️ WARN"
+        },
+        {
+          "metric": "PSNR",
+          "paper": "28.5",
+          "reproduced": "27.9",
+          "diff": "-0.6 ↓",
+          "status": "✅ PASS"
+        },
+        {
+          "metric": "SSIM",
+          "paper": "0.92",
+          "reproduced": "0.91",
+          "diff": "-0.01 ↓",
+          "status": "✅ PASS"
+        },
+        {
+          "metric": "loss",
+          "paper": "0.15",
+          "reproduced": "0.18",
+          "diff": "+0.03 ↑",
+          "status": "❌ FAIL"
+        }
+      ]
+    },
+    {
+      "type": "conclusion",
+      "title": "Conclusion",
+      "overall_status": "FAIL",
+      "passed": 3,
+      "total": 5
+    }
+  ]
+}
