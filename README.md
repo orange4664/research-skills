@@ -15,7 +15,7 @@ Each skill is a self-contained tool that can be used:
 | [paper-parser](./paper-parser/) | Parse PDF papers into structured JSON (via MinerU) | ✅ Ready |
 | [paper-presenter](./paper-presenter/) | Generate Beamer presentations summarizing papers | ✅ Ready |
 | [beamer-skill](./beamer-skill/) | Academic Beamer LaTeX presentation lifecycle tool | ✅ Ready (bundled) |
-| code-reproducer | SSH to GPU servers and reproduce training pipelines | 🔜 Coming |
+| [code-reproducer](./code-reproducer/) | SSH to GPU servers and reproduce training pipelines | ✅ Ready |
 | result-analyzer | Compare reproduced results against original figures | 🔜 Coming |
 
 ## 🚀 Quick Start
